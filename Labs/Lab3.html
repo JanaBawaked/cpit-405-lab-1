@@ -1,17 +1,22 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 
 <head>
     <meta charset="UTF-8">
-    <title>Lab 3</title>
+    <title>Lab 3: CSS Structure and Properties</title>
 
     <style>
+        /* Question 1 */
         .image-preview img {
             border-style: solid;
             border-width: 30px;
-            border-color: skyblue lightpink lightgreen #fefed5;
+            border-top-color: skyblue;
+            border-right-color: lightpink;
+            border-bottom-color: lightgreen;
+            border-left-color: #ffefd5;
         }
 
+        /* Question 2 */
         p > span {
             color: red;
         }
@@ -32,15 +37,17 @@
             color: blue;
         }
 
-        table, th, td {
-            border: 1px solid black;
+        /* Table */
+        table {
             border-collapse: collapse;
         }
 
         th, td {
-            padding: 8px;
+            border: 1px solid black;
+            padding: 10px;
         }
     </style>
+
 </head>
 
 <body>
@@ -53,7 +60,20 @@
         <img src="https://cpit405.gitlab.io/images/KAU_logo.png" alt="KAU Logo">
     </div>
 
+
     <h2>Question 2</h2>
+
+    <div id="header">
+        <span class="myclass1">Every</span>
+        <span class="myclass2">one can</span>
+        <span class="myclass3">success.</span>
+    </div>
+
+    <p>
+        One machine can do the work of fifty ordinary men.
+        <span class="myclass4">No machine can do the work of one extraordinary man.</span>
+    </p>
+
 
     <table>
         <tr>
