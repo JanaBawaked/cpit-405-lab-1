@@ -1,0 +1,283 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lab 6 - Like or Dislike</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 40px;
+        }
+
+        h1 {
+            font-size: 40px;
+        }
+
+        .vote-buttons {
+            margin: 40px 0;
+        }
+
+        button {
+            padding: 15px 25px;
+            margin: 10px;
+            font-size: 22px;
+            cursor: pointer;
+            border: 1px solid gray;
+            border-radius: 8px;
+            background-color: #e9e9ed;
+            transition: transform 0.2s, background-color 0.2s;
+        }
+
+        button:hover {
+            background-color: #d5d5dc;
+        }
+
+        .animate {
+            animation: pop 0.3s ease;
+        }
+
+        @keyframes pop {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.15); }
+            100% { transform: scale(1); }
+        }
+
+        textarea {
+            width: 70%;
+            max-width: 900px;
+            height: 150px;
+            padding: 15px;
+            font-size: 18px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            box-sizing: border-box;
+        }
+
+        #comments {
+            margin: 20px auto;
+            width: 70%;
+            max-width: 900px;
+            text-align: left;
+            overflow-wrap: anywhere;
+        }
+
+        #message {
+            color: red;
+        }
+
+        @media (max-width: 600px) {
+            body {
+                margin: 15px;
+            }
+
+            h1 {
+                font-size: 30px;
+            }
+
+            button {
+                font-size: 18px;
+                padding: 12px 18px;
+                margin: 5px;
+            }
+
+            textarea, #comments {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>Lab 6</h1>
+    <h1>Like or dislike</h1>
+
+    <div class="vote-buttons">
+        <button id="likeBtn">👍 <span id="likes">0</span></button>
+        <button id="dislikeBtn">👎 <span id="dislikes">0</span></button>
+    </div>
+
+    <h2>Comments</h2>
+
+    <textarea id="commentInput"
+        placeholder="Write a comment..."></textarea>
+
+    <br>
+
+    <button id="submitBtn">Submit</button>
+    <button id="clearBtn">Clear</button>
+
+    <p id="message"></p>
+
+    <div id="comments"></div>
+
+    <button id="resetBtn">Reset</button>
+
+    <script>
+        // Cookie functions
+        function setCookie(name, value) {
+            document.cookie = name + "=" +
+                encodeURIComponent(value) +
+                "; path=/; max-age=2592000; SameSite=Lax";
+        }
+
+        function getCookie(name) {
+            const cookies = document.cookie.split("; ");
+
+            for (let cookie of cookies) {
+                const parts = cookie.split("=");
+
+                if (parts[0] === name) {
+                    return decodeURIComponent(parts.slice(1).join("="));
+                }
+            }
+
+            return "";
+        }
+
+        function deleteCookie(name) {
+            document.cookie = name + "=; path=/; max-age=0";
+        }
+
+        // Initial data
+        let likes = Number(getCookie("lab6Likes")) || 0;
+        let dislikes = Number(getCookie("lab6Dislikes")) || 0;
+        let comments = JSON.parse(getCookie("lab6Comments") || "[]");
+
+        let voted = getCookie("lab6Vote");
+        let commented = getCookie("lab6Commented");
+
+        // Update the page
+        function updatePage() {
+            document.getElementById("likes").textContent = likes;
+            document.getElementById("dislikes").textContent = dislikes;
+
+            const commentsDiv = document.getElementById("comments");
+            commentsDiv.innerHTML = "";
+
+            comments.forEach(function(comment) {
+                const p = document.createElement("p");
+                p.textContent = comment;
+                commentsDiv.appendChild(p);
+            });
+        }
+
+        // Button animation
+        function animateButton(button) {
+            button.classList.remove("animate");
+            void button.offsetWidth;
+            button.classList.add("animate");
+        }
+
+        // Like button
+        document.getElementById("likeBtn").addEventListener("click", function() {
+            if (voted) {
+                document.getElementById("message").textContent =
+                    "You have already voted!";
+                return;
+            }
+
+            likes++;
+            voted = "like";
+
+            setCookie("lab6Likes", likes);
+            setCookie("lab6Vote", voted);
+
+            animateButton(this);
+            document.getElementById("message").textContent = "";
+            updatePage();
+        });
+
+        // Dislike button
+        document.getElementById("dislikeBtn").addEventListener("click", function() {
+            if (voted) {
+                document.getElementById("message").textContent =
+                    "You have already voted!";
+                return;
+            }
+
+            dislikes++;
+            voted = "dislike";
+
+            setCookie("lab6Dislikes", dislikes);
+            setCookie("lab6Vote", voted);
+
+            animateButton(this);
+            document.getElementById("message").textContent = "";
+            updatePage();
+        });
+
+        // Submit comment
+        document.getElementById("submitBtn").addEventListener("click", function() {
+            const input = document.getElementById("commentInput");
+            const comment = input.value.trim();
+
+            if (commented) {
+                document.getElementById("message").textContent =
+                    "You have already commented!";
+                return;
+            }
+
+            if (comment === "") {
+                document.getElementById("message").textContent =
+                    "Please write a comment!";
+                return;
+            }
+
+            comments.push(comment);
+            commented = "yes";
+
+            setCookie("lab6Comments", JSON.stringify(comments));
+            setCookie("lab6Commented", commented);
+
+            input.value = "";
+            document.getElementById("message").textContent = "";
+
+            updatePage();
+        });
+
+        // Clear comment input
+        document.getElementById("clearBtn").addEventListener("click", function() {
+            document.getElementById("commentInput").value = "";
+        });
+
+        // Reset functionality
+        document.getElementById("resetBtn").addEventListener("click", function() {
+            const confirmReset = confirm(
+                "Are you sure you want to reset your vote and comments?"
+            );
+
+            if (!confirmReset) {
+                return;
+            }
+
+            deleteCookie("lab6Likes");
+            deleteCookie("lab6Dislikes");
+            deleteCookie("lab6Comments");
+            deleteCookie("lab6Vote");
+            deleteCookie("lab6Commented");
+
+            likes = 0;
+            dislikes = 0;
+            comments = [];
+            voted = "";
+            commented = "";
+
+            document.getElementById("commentInput").value = "";
+            document.getElementById("message").textContent = "";
+
+            updatePage();
+
+            alert("Your vote and comments have been reset!");
+        });
+
+        // Load saved data
+        updatePage();
+    </script>
+
+</body>
+</html>
