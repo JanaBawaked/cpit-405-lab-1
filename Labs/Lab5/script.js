@@ -455,6 +455,14 @@ function displayPlayers(players) {
     players.forEach(function(player) {
         const row = document.createElement("tr");
 
+        row.addEventListener("mouseover", function() {
+            row.style.backgroundColor = "lightblue";
+        });
+
+        row.addEventListener("mouseout", function() {
+            row.style.backgroundColor = "";
+    });
+
         const values = [
             player.name,
             player.team.match(/\((.*?)\)/)[1],
