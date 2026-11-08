@@ -4,87 +4,94 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lab 6 - Like or Dislike</title>
+    <title>CPIT 405 - Lab 6</title>
 
     <style>
         body {
             font-family: Arial, sans-serif;
+            margin: 30px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: auto;
+        }
+
+        header {
             text-align: center;
-            margin: 40px;
         }
 
-        h1 {
-            font-size: 40px;
-        }
-
-        .vote-buttons {
-            margin: 40px 0;
+        .vote-section {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 25px 0;
         }
 
         button {
-            padding: 15px 25px;
-            margin: 10px;
-            font-size: 22px;
+            padding: 10px 20px;
             cursor: pointer;
-            border: 1px solid gray;
-            border-radius: 8px;
-            background-color: #e9e9ed;
-            transition: transform 0.2s, background-color 0.2s;
+            border: 1px solid #ccc;
+            border-radius: 5px;
         }
 
-        button:hover {
-            background-color: #d5d5dc;
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
         }
 
-        .animate {
-            animation: pop 0.3s ease;
-        }
-
-        @keyframes pop {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.15); }
-            100% { transform: scale(1); }
+        .comment-section {
+            margin-top: 30px;
         }
 
         textarea {
-            width: 70%;
-            max-width: 900px;
-            height: 150px;
-            padding: 15px;
-            font-size: 18px;
-            border: 1px solid #ccc;
-            border-radius: 8px;
+            width: 100%;
             box-sizing: border-box;
+            padding: 10px;
+            font-family: Arial, sans-serif;
         }
 
-        #comments {
-            margin: 20px auto;
-            width: 70%;
-            max-width: 900px;
-            text-align: left;
-            overflow-wrap: anywhere;
+        .actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
         }
 
         #message {
-            color: red;
+            margin: 20px 0;
         }
 
-        @media (max-width: 600px) {
-            body {
-                margin: 15px;
+        .comment {
+            padding: 10px;
+            border: 1px solid #ddd;
+            margin: 10px 0;
+            overflow-wrap: anywhere;
+        }
+
+        @keyframes pop {
+            0% {
+                transform: scale(1);
             }
 
-            h1 {
-                font-size: 30px;
+            50% {
+                transform: scale(1.15);
             }
 
-            button {
-                font-size: 18px;
-                padding: 12px 18px;
-                margin: 5px;
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        .animate {
+            animation: pop 0.4s ease;
+        }
+
+        @media (max-width: 480px) {
+            .vote-section {
+                flex-direction: column;
             }
 
-            textarea, #comments {
+            .vote-section button {
                 width: 100%;
             }
         }
@@ -93,190 +100,232 @@
 
 <body>
 
-    <h1>Lab 6</h1>
-    <h1>Like or dislike</h1>
+    <main class="container">
 
-    <div class="vote-buttons">
-        <button id="likeBtn">👍 <span id="likes">0</span></button>
-        <button id="dislikeBtn">👎 <span id="dislikes">0</span></button>
-    </div>
+        <header>
+            <h1>Like & Dislike</h1>
+            <p>Share your opinion and leave a comment!</p>
+        </header>
 
-    <h2>Comments</h2>
+        <section class="vote-section">
+            <button id="likeBtn" type="button">
+                👍 Like <span id="likeCount">0</span>
+            </button>
 
-    <textarea id="commentInput"
-        placeholder="Write a comment..."></textarea>
+            <button id="dislikeBtn" type="button">
+                👎 Dislike <span id="dislikeCount">0</span>
+            </button>
+        </section>
 
-    <br>
+        <section class="comment-section">
+            <h2>Leave a Comment</h2>
 
-    <button id="submitBtn">Submit</button>
-    <button id="clearBtn">Clear</button>
+            <textarea id="commentInput"
+                      placeholder="Write your comment..."
+                      rows="4"></textarea>
 
-    <p id="message"></p>
+            <div class="actions">
+                <button id="submitBtn" type="button">
+                    Submit
+                </button>
 
-    <div id="comments"></div>
+                <button id="resetBtn" type="button">
+                    Clear
+                </button>
+            </div>
+        </section>
 
-    <button id="resetBtn">Reset</button>
+        <p id="message" role="status" aria-live="polite"></p>
+
+        <section class="comments-section">
+            <h2>Comments</h2>
+            <div id="commentsList"></div>
+        </section>
+
+    </main>
 
     <script>
-        // Cookie functions
+        // Get HTML elements
+        let likeBtn = document.getElementById("likeBtn");
+        let dislikeBtn = document.getElementById("dislikeBtn");
+        let likeCount = document.getElementById("likeCount");
+        let dislikeCount = document.getElementById("dislikeCount");
+
+        let commentInput = document.getElementById("commentInput");
+        let submitBtn = document.getElementById("submitBtn");
+        let commentsList = document.getElementById("commentsList");
+
+        let resetBtn = document.getElementById("resetBtn");
+        let message = document.getElementById("message");
+
+        // Initialize data
+        let likes = 0;
+        let dislikes = 0;
+        let comments = [];
+
+        // Set a cookie
         function setCookie(name, value) {
-            document.cookie = name + "=" +
-                encodeURIComponent(value) +
-                "; path=/; max-age=2592000; SameSite=Lax";
+            document.cookie =
+                name + "=" + encodeURIComponent(value) +
+                "; max-age=2592000; path=/; SameSite=Lax";
         }
 
+        // Get a cookie
         function getCookie(name) {
-            const cookies = document.cookie.split("; ");
+            let cookies = document.cookie.split(";");
 
-            for (let cookie of cookies) {
-                const parts = cookie.split("=");
+            for (let i = 0; i < cookies.length; i++) {
+                let cookie = cookies[i].trim();
 
-                if (parts[0] === name) {
-                    return decodeURIComponent(parts.slice(1).join("="));
+                if (cookie.startsWith(name + "=")) {
+                    return decodeURIComponent(
+                        cookie.substring(name.length + 1)
+                    );
                 }
             }
 
-            return "";
+            return null;
         }
 
+        // Delete a cookie
         function deleteCookie(name) {
-            document.cookie = name + "=; path=/; max-age=0";
+            document.cookie =
+                name + "=; max-age=0; path=/; SameSite=Lax";
         }
-
-        // Initial data
-        let likes = Number(getCookie("lab6Likes")) || 0;
-        let dislikes = Number(getCookie("lab6Dislikes")) || 0;
-        let comments = JSON.parse(getCookie("lab6Comments") || "[]");
-
-        let voted = getCookie("lab6Vote");
-        let commented = getCookie("lab6Commented");
 
         // Update the page
-        function updatePage() {
-            document.getElementById("likes").textContent = likes;
-            document.getElementById("dislikes").textContent = dislikes;
+        function updateUI() {
+            likeCount.textContent = likes;
+            dislikeCount.textContent = dislikes;
 
-            const commentsDiv = document.getElementById("comments");
-            commentsDiv.innerHTML = "";
+            commentsList.innerHTML = "";
 
             comments.forEach(function(comment) {
-                const p = document.createElement("p");
+                let p = document.createElement("p");
+                p.className = "comment";
                 p.textContent = comment;
-                commentsDiv.appendChild(p);
+                commentsList.appendChild(p);
             });
+
+            let voted = getCookie("lab6_vote") !== null;
+            likeBtn.disabled = voted;
+            dislikeBtn.disabled = voted;
+
+            let commented = getCookie("lab6_comments") !== null;
+            commentInput.disabled = commented;
+            submitBtn.disabled = commented;
         }
 
-        // Button animation
-        function animateButton(button) {
-            button.classList.remove("animate");
-            void button.offsetWidth;
-            button.classList.add("animate");
-        }
-
-        // Like button
-        document.getElementById("likeBtn").addEventListener("click", function() {
-            if (voted) {
-                document.getElementById("message").textContent =
-                    "You have already voted!";
+        // Handle Like
+        function addLike() {
+            if (getCookie("lab6_vote") !== null) {
+                message.textContent = "You have already voted!";
                 return;
             }
 
             likes++;
-            voted = "like";
+            setCookie("lab6_vote", "like");
+            setCookie("lab6_likes", likes);
+            likeBtn.classList.add("animate");
 
-            setCookie("lab6Likes", likes);
-            setCookie("lab6Vote", voted);
+            message.textContent = "You liked this!";
+            updateUI();
+        }
 
-            animateButton(this);
-            document.getElementById("message").textContent = "";
-            updatePage();
-        });
-
-        // Dislike button
-        document.getElementById("dislikeBtn").addEventListener("click", function() {
-            if (voted) {
-                document.getElementById("message").textContent =
-                    "You have already voted!";
+        // Handle Dislike
+        function addDislike() {
+            if (getCookie("lab6_vote") !== null) {
+                message.textContent = "You have already voted!";
                 return;
             }
 
             dislikes++;
-            voted = "dislike";
+            setCookie("lab6_vote", "dislike");
+            setCookie("lab6_dislikes", dislikes);
+            dislikeBtn.classList.add("animate");
 
-            setCookie("lab6Dislikes", dislikes);
-            setCookie("lab6Vote", voted);
+            message.textContent = "You disliked this!";
+            updateUI();
+        }
 
-            animateButton(this);
-            document.getElementById("message").textContent = "";
-            updatePage();
-        });
-
-        // Submit comment
-        document.getElementById("submitBtn").addEventListener("click", function() {
-            const input = document.getElementById("commentInput");
-            const comment = input.value.trim();
-
-            if (commented) {
-                document.getElementById("message").textContent =
-                    "You have already commented!";
+        // Handle comment submission
+        function addComment() {
+            if (getCookie("lab6_comments") !== null) {
+                message.textContent = "You have already commented!";
                 return;
             }
 
+            let comment = commentInput.value.trim();
+
             if (comment === "") {
-                document.getElementById("message").textContent =
-                    "Please write a comment!";
+                message.textContent = "Please write a comment!";
                 return;
             }
 
             comments.push(comment);
-            commented = "yes";
 
-            setCookie("lab6Comments", JSON.stringify(comments));
-            setCookie("lab6Commented", commented);
+            setCookie("lab6_comments", JSON.stringify(comments));
 
-            input.value = "";
-            document.getElementById("message").textContent = "";
+            commentInput.value = "";
+            message.textContent = "Comment added!";
+            updateUI();
+        }
 
-            updatePage();
-        });
-
-        // Clear comment input
-        document.getElementById("clearBtn").addEventListener("click", function() {
-            document.getElementById("commentInput").value = "";
-        });
-
-        // Reset functionality
-        document.getElementById("resetBtn").addEventListener("click", function() {
-            const confirmReset = confirm(
-                "Are you sure you want to reset your vote and comments?"
-            );
-
-            if (!confirmReset) {
-                return;
-            }
-
-            deleteCookie("lab6Likes");
-            deleteCookie("lab6Dislikes");
-            deleteCookie("lab6Comments");
-            deleteCookie("lab6Vote");
-            deleteCookie("lab6Commented");
+        // Handle Clear
+        function resetAll() {
+            deleteCookie("lab6_vote");
+            deleteCookie("lab6_likes");
+            deleteCookie("lab6_dislikes");
+            deleteCookie("lab6_comments");
 
             likes = 0;
             dislikes = 0;
             comments = [];
-            voted = "";
-            commented = "";
 
-            document.getElementById("commentInput").value = "";
-            document.getElementById("message").textContent = "";
+            commentInput.value = "";
+            message.textContent = "All data has been reset!";
 
-            updatePage();
+            updateUI();
+        }
 
-            alert("Your vote and comments have been reset!");
+        // Load saved data from cookies
+        function loadData() {
+            likes = Number(getCookie("lab6_likes")) || 0;
+            dislikes = Number(getCookie("lab6_dislikes")) || 0;
+
+            let savedComments = getCookie("lab6_comments");
+
+            if (savedComments !== null) {
+                try {
+                    let parsed = JSON.parse(savedComments);
+
+                    if (Array.isArray(parsed)) {
+                        comments = parsed;
+                    }
+                } catch (error) {
+                    comments = [];
+                }
+            }
+
+            updateUI();
+        }
+
+        // Event listeners
+        likeBtn.addEventListener("click", addLike);
+        dislikeBtn.addEventListener("click", addDislike);
+        submitBtn.addEventListener("click", addComment);
+        resetBtn.addEventListener("click", resetAll);
+
+        // Initialize page
+        loadData();
+
+        likeBtn.addEventListener("animationend", function() {
+            likeBtn.classList.remove("animate");
         });
 
-        // Load saved data
-        updatePage();
+        dislikeBtn.addEventListener("animationend", function() {
+            dislikeBtn.classList.remove("animate");
+        });
     </script>
 
 </body>
