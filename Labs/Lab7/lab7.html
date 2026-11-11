@@ -1,0 +1,34 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CPIT405 - Lab 7</title>
+    <link rel="stylesheet" href="lab7.css">
+</head>
+<body>
+    <header>
+        <h1>CPIT405 - Lab 7</h1>
+        <h2>Unsplash Image Search</h2>
+        <p>Search for photos using AJAX methods</p>
+
+        <input type="text" id="searchInput"
+               placeholder="Enter a keyword">
+
+        <div class="buttons">
+            <button id="xhrSearch">Search using XHR</button>
+            <button id="fetchSearch">Search using Fetch</button>
+            <button id="asyncSearch">Search using Async/Await</button>
+        </div>
+    </header>
+
+    <main>
+        <p id="message"></p>
+        <div id="searchResults"></div>
+    </main>
+
+    <script src="lab7.js"></script>
+</body>
+</html>
+
